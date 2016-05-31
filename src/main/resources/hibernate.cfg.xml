@@ -5,20 +5,20 @@
 <hibernate-configuration>
     <session-factory>
         <property name="hibernate.dialect">
-            org.hibernate.dialect.PostgreSQL9Dialect
+            org.hibernate.dialect.HSQLDialect
         </property>
         <property name="hibernate.connection.driver_class">
-            org.postgresql.Driver
+            org.hsqldb.jdbcDriver
         </property>
 
         <property name="hibernate.connection.url">
-            jdbc:postgresql://localhost/database
+            jdbc:hsqldb:inmemory:db
         </property>
         <property name="hibernate.connection.username">
             user
         </property>
         <property name="hibernate.connection.password">
-            password
+
         </property>
 
     </session-factory>

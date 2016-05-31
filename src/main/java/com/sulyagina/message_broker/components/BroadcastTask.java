@@ -16,9 +16,9 @@ public class BroadcastTask implements Serializable{
     @Column(name="message")
     private Message message;
     @Column(name="topic")
-    private Topic topic;
+    private String topic;
 
-    public BroadcastTask(Message message, Topic topic) {
+    public BroadcastTask(Message message, String topic) {
         this.message = message;
         this.topic = topic;
     }
@@ -31,11 +31,11 @@ public class BroadcastTask implements Serializable{
         this.id = id;
     }
 
-    public Topic getTopic(){
+    public String getTopic(){
         return topic;
     }
 
-    public void setTopic(Topic topic) {
+    public void setTopic(String topic) {
         this.topic = topic;
     }
 

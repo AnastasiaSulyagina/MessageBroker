@@ -4,11 +4,8 @@ import com.sulyagina.message_broker.broker.Broker;
 import com.sulyagina.message_broker.broker.MessageBroker;
 import com.sulyagina.message_broker.components.Listener;
 import com.sulyagina.message_broker.components.Message;
-import com.sulyagina.message_broker.components.Topic;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 import org.junit.Test;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
@@ -21,9 +18,9 @@ public class Tests {
     @Test
     public void testSubscribeReceive() {
         MessageBroker broker = new Broker();
-        Listener listener = new TestListener();
+        Listener listener = new TestListener("TestListener1");
         Message message = new TestMessage("Message");
-        Topic topic = new Topic("topic");
+        String topic = "topic";
         broker.subscribe(listener, topic);
         broker.publish(message, topic);
         try {
@@ -37,10 +34,10 @@ public class Tests {
     @Test
     public void testSubscribeNotReceive() {
         MessageBroker broker = new Broker();
-        Listener listener = new TestListener();
+        Listener listener = new TestListener("TestListener2");
         Message message = new TestMessage("Message");
-        broker.subscribe(listener, new Topic("topic"));
-        broker.publish(message, new Topic("another topic"));
+        broker.subscribe(listener, "topic");
+        broker.publish(message, "not-listened topic");
         try {
             Thread.sleep(10);
         } catch (Exception e) {
@@ -52,8 +49,8 @@ public class Tests {
     @Test
     public void testUnsubscribe() {
         MessageBroker broker = new Broker();
-        Listener listener = new TestListener();
-        Topic topic = new Topic("topic");
+        Listener listener = new TestListener("TestListener3");
+        String topic = "topic";
         broker.subscribe(listener, topic);
         broker.publish(new TestMessage("Message"), topic);
         try {
@@ -73,8 +70,10 @@ public class Tests {
     }
 
     public static void main(String[] args) {
+
         Result result = JUnitCore.runClasses(Tests.class);
-        System.out.println(result.getFailureCount());
+        System.out.println("Failed: " + Integer.toString(result.getFailureCount()) +
+                ", OK: " + Integer.toString(result.getRunCount() - result.getFailureCount()));
         for (Failure failure : result.getFailures()) {
             System.out.println(failure.toString());
         }

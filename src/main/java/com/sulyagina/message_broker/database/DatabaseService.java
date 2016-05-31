@@ -2,9 +2,10 @@ package com.sulyagina.message_broker.database;
 
 import com.sulyagina.message_broker.components.*;
 import com.sulyagina.message_broker.components.database.DatabaseTask;
-import com.sulyagina.message_broker.dao.CommonDAO;
+import com.sulyagina.message_broker.dao.BroadcastDAO;
 import com.sulyagina.message_broker.dao.AbstractDAO;
-import com.sulyagina.message_broker.dao.ListenerDAO;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.ApplicationContext;
 
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -15,35 +16,25 @@ import java.util.concurrent.TimeUnit;
  */
 public class DatabaseService {
     private ThreadPoolExecutor executor;
-    private AbstractDAO<ListenerWrapper> listenerDAO;
-    private AbstractDAO<Topic> topicDAO;
     private AbstractDAO<BroadcastTask> broadcastDAO;
 
-    public DatabaseService() {
-        //executor = (ThreadPoolExecutor) Executors.newSingleThreadExecutor();
+    public DatabaseService(ApplicationContext context) {
         executor = new ThreadPoolExecutor(1, 1, 5000, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
-        listenerDAO = new ListenerDAO<>();
-        topicDAO = new CommonDAO<>();
-        broadcastDAO = new CommonDAO<>();
+        BeanFactory factory = context;
+        broadcastDAO = factory.getBean(BroadcastDAO.class);
     }
 
     public AbstractDAO getDAO(DatabaseTask.Entity entityType) {
         switch (entityType) {
-            case LISTENER:
-                return listenerDAO;
             case BROADCAST:
                 return broadcastDAO;
-            case TOPIC:
-                return topicDAO;
             default:
-                return new CommonDAO<>();
+                return null;
         }
     }
 
     public void addTask(DatabaseTask task) {
-        //executor.submit(new DatabaseRunnable(task));
-        AbstractDAO dao = getDAO(task.getEntityType());
-        task.writeTo(dao);
+        executor.submit(new DatabaseRunnable(task));
     }
 
     public class DatabaseRunnable implements Runnable {

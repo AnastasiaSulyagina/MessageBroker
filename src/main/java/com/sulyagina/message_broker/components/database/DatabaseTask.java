@@ -7,8 +7,6 @@ import com.sulyagina.message_broker.dao.AbstractDAO;
  */
 public interface DatabaseTask {
     public enum Entity{
-        LISTENER,
-        TOPIC,
         BROADCAST
     }
     void writeTo(AbstractDAO dao);
