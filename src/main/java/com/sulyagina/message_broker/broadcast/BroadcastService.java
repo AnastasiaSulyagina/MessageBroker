@@ -1,5 +1,6 @@
 package com.sulyagina.message_broker.broadcast;
 
+import com.sulyagina.message_broker.broker.Broker;
 import com.sulyagina.message_broker.components.BroadcastTask;
 import com.sulyagina.message_broker.components.Listener;
 import com.sulyagina.message_broker.broker.MessageBroker;
@@ -29,6 +30,21 @@ public class BroadcastService {
     public void addTask(BroadcastTask task) {
         databaseService.addTask(new DatabaseUpdateTask(DatabaseTask.Entity.BROADCAST, task));
         executor.submit(new BroadcastRunnable(task));
+    }
+
+    public void waitClose() {
+        this.close();
+        while (executor.isTerminating()) {
+            try {
+                Thread.sleep(10);
+            } catch (Exception e) {
+                return;
+            }
+        }
+    }
+
+    public void close() {
+        this.executor.shutdown();
     }
 
     public class BroadcastRunnable implements Runnable {

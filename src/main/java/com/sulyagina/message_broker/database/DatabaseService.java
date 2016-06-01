@@ -37,6 +37,10 @@ public class DatabaseService {
         executor.submit(new DatabaseRunnable(task));
     }
 
+    public void close() {
+        this.executor.shutdown();
+    }
+
     public class DatabaseRunnable implements Runnable {
         DatabaseTask task;
         public DatabaseRunnable (DatabaseTask task) {

@@ -74,4 +74,19 @@ public class Broker implements MessageBroker {
             return new HashSet<>();
         }
     }
+
+    @Override
+    public void close() {
+        this.broadcastService.close();
+        this.databaseService.close();
+
+    }
+
+    @Override
+    public void waitClose() {
+        this.broadcastService.waitClose();
+        this.databaseService.close();
+
+    }
+
 }

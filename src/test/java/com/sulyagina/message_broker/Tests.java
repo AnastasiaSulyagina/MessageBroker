@@ -12,61 +12,89 @@ import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 
 /**
- * Created by anastasia on 29.05.16.
+ * For testing such library decided not to go with any complicated multithreading things, sleeping for a bit is ok.
  */
 public class Tests {
     @Test
     public void testSubscribeReceive() {
-        MessageBroker broker = new Broker();
-        Listener listener = new TestListener("TestListener1");
+        EventManager manager = new EventManager();
+        TestBroker broker = new TestBroker(manager);
+        Listener listener = new TestListener("TestListener");
+        manager.addEvent(broker.QUEUE_EMPTY_EVENT, () -> {
+            assertEquals("A message should be received", ((TestListener) listener).getReceived(), 1);
+        });
         Message message = new TestMessage("Message");
         String topic = "topic";
         broker.subscribe(listener, topic);
         broker.publish(message, topic);
-        try {
-            Thread.sleep(10);
-        } catch (Exception e) {
-            System.err.println("fail1");
-        }
-        assertEquals("A message should be received", ((TestListener) listener).getReceived(), 1);
+
+        broker.close();
     }
 
     @Test
-    public void testSubscribeNotReceive() {
-        MessageBroker broker = new Broker();
+    public void testDoubleSubscribeReceive() {
+        EventManager manager = new EventManager();
+        TestBroker broker = new TestBroker(manager);
+        Listener listener = new TestListener("TestListener");
+        Listener anotherListener = new TestListener("Another TestListener");
+        manager.addEvent(broker.QUEUE_EMPTY_EVENT, () -> {
+            assertEquals("Message received by first listener", ((TestListener) listener).getReceived(), 1);
+            assertEquals("Message received by second listener", ((TestListener) anotherListener).getReceived(), 1);
+        });
+        Message message = new TestMessage("Message");
+        String topic = "topic";
+        broker.subscribe(listener, topic);
+        broker.subscribe(anotherListener, topic);
+        broker.publish(message, topic);
+        broker.close();
+    }
+
+    @Test
+    public void testDoubleSubscribeDoubleReceive() {
+        EventManager manager = new EventManager();
+        TestBroker broker = new TestBroker(manager);
+        Listener listener = new TestListener("TestListener");
+        Listener anotherListener = new TestListener("Another TestListener");
+        manager.addEvent(broker.QUEUE_EMPTY_EVENT, () -> {
+            assertEquals("Message received by first listener", ((TestListener) listener).getReceived(), 2);
+            assertEquals("Message received by second listener", ((TestListener) anotherListener).getReceived(), 2);
+        });
+        String topic = "topic";
+        broker.subscribe(listener, topic);
+        broker.subscribe(anotherListener, topic);
+        broker.publish(new TestMessage("Message"), topic);
+        broker.publish(new TestMessage("New message"), topic);
+
+        broker.close();
+    }
+
+    @Test
+    public void testWrongSubscribeNotReceive() {
+        EventManager manager = new EventManager();
+        TestBroker broker = new TestBroker(manager);
         Listener listener = new TestListener("TestListener2");
+        manager.addEvent(broker.QUEUE_EMPTY_EVENT,
+                () -> assertEquals("Message from wrong topic not received", ((TestListener) listener).getReceived(), 0));
         Message message = new TestMessage("Message");
         broker.subscribe(listener, "topic");
         broker.publish(message, "not-listened topic");
-        try {
-            Thread.sleep(10);
-        } catch (Exception e) {
-            System.err.println("fail2");
-        }
-        assertEquals("Message from wrong topic not to be received", ((TestListener) listener).getReceived(), 0);
+
+        broker.close();
     }
 
     @Test
     public void testUnsubscribe() {
-        MessageBroker broker = new Broker();
+        EventManager manager = new EventManager();
+        TestBroker broker = new TestBroker(manager);
         Listener listener = new TestListener("TestListener3");
         String topic = "topic";
         broker.subscribe(listener, topic);
         broker.publish(new TestMessage("Message"), topic);
-        try {
-            Thread.sleep(10);
-        } catch (Exception e) {
-            System.err.println("fail3");
-        }
-        assertEquals("Message should be received", ((TestListener)listener).getReceived(), 1);
+        manager.addEvent(broker.QUEUE_EMPTY_EVENT,
+                () -> assertEquals("Unsubscribed. Receive nothing", ((TestListener)listener).getReceived(), 1));
         broker.unSubscribe(listener, topic);
-        broker.publish(new TestMessage("New message"), topic);
-        try {
-            Thread.sleep(10);
-        } catch (Exception e) {
-            System.err.println("fail3");
-        }
-        assertEquals("Unsubscribed. receive nothing", ((TestListener)listener).getReceived(), 1);
+        broker.publish(new TestMessage("Message"), topic);
+        broker.close();
     }
 
     public static void main(String[] args) {

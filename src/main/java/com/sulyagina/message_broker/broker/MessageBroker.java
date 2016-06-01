@@ -14,4 +14,6 @@ public interface MessageBroker {
     boolean subscribe(Listener listener, String topic);
     boolean unSubscribe(Listener listener, String topic);
     Set<Listener> getListenersByTopic(String topic);
+    void close();
+    void waitClose();
 }
