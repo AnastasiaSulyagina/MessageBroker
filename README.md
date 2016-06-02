@@ -5,7 +5,7 @@ when broker starts functioning again, it will continue delivering messages it ha
 
 ## Build
 1. run "mvn package" from root
-2. get message_broker-1.0-SNAPSHOT-jar-with-dependencies.jar file and add it as external library to your project
+2. get target/message_broker-1.0-SNAPSHOT-jar-with-dependencies.jar file and add it as external library to your project
 
 ## Initialization
 ```JAVA
